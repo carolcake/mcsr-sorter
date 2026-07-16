@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MCSR Sorter</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: white;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: white;
+      color: black;
+      font-family: "Times New Roman", Times, serif;
+      padding: 62px 24px 80px;
+    }
+
+    button {
+      color: black;
+      font: inherit;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0;
+      text-align: center;
+      font-size: 36px;
+      line-height: 1.1;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .instructions {
+      max-width: 1120px;
+      margin: 38px auto 82px;
+      text-align: center;
+      font-size: 31px;
+      line-height: 1.14;
+    }
+
+    .sorter-card,
+    .results-card {
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      padding: 0;
+      box-shadow: none;
+    }
+
+    .status {
+      min-height: 90px;
+      margin: 0 0 22px;
+      text-align: center;
+      font-size: 37px;
+      line-height: 1.22;
+      font-weight: 400;
+      text-transform: lowercase;
+    }
+
+    progress {
+      display: none;
+    }
+
+    .battle-grid {
+      display: grid;
+      grid-template-columns: 246px 246px 246px;
+      gap: 20px;
+      justify-content: center;
+      align-items: stretch;
+    }
+
+    .choice,
+    .middle-buttons button,
+    .secondary-button {
+      border: 2px solid black;
+      border-radius: 0;
+      background: white;
+      box-shadow: none;
+    }
+
+    .choice {
+      width: 246px;
+      height: 386px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow-wrap: anywhere;
+      font-size: 39px;
+      line-height: 1.12;
+      font-weight: 400;
+    }
+
+    .middle-buttons {
+      width: 246px;
+      height: 386px;
+      display: grid;
+      grid-template-rows: 148px 228px;
+      gap: 10px;
+    }
+
+    .middle-buttons button {
+      width: 246px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 37px;
+      line-height: 1.12;
+      font-weight: 400;
+    }
+
+    .choice:hover,
+    .choice:focus-visible,
+    .middle-buttons button:hover,
+    .middle-buttons button:focus-visible,
+    .secondary-button:hover,
+    .secondary-button:focus-visible {
+      background: #f3f3f3;
+      outline: none;
+    }
+
+    .results-card {
+      display: none;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .results-card h2 {
+      margin: 0 0 28px;
+      text-align: center;
+      font-size: 37px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    table {
+      width: 100%;
+      margin: 0 auto 24px;
+      border-collapse: collapse;
+      background: white;
+      font-size: 25px;
+    }
+
+    th,
+    td {
+      border: 1px solid black;
+      padding: 8px 12px;
+      text-align: left;
+    }
+
+    th:first-child,
+    td:first-child {
+      width: 90px;
+      text-align: center;
+    }
+
+    th {
+      background: white;
+      color: black;
+      font-weight: 700;
+    }
+
+    .result-actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .secondary-button {
+      padding: 10px 18px;
+      font-size: 22px;
+    }
+
+    .credit {
+      margin: 45px 0 0;
+      text-align: center;
+      color: black;
+      font-size: 18px;
+    }
+
+    .credit a {
+      color: blue;
+    }
+
+    @media (max-width: 860px) {
+      body {
+        padding: 38px 14px 60px;
+      }
+
+      h1 {
+        font-size: clamp(27px, 7vw, 36px);
+      }
+
+      .instructions {
+        margin: 30px auto 55px;
+        font-size: clamp(22px, 5vw, 31px);
+      }
+
+      .status {
+        font-size: clamp(29px, 7vw, 37px);
+      }
+
+      .battle-grid {
+        grid-template-columns: minmax(0, 246px);
+        gap: 12px;
+      }
+
+      .choice,
+      .middle-buttons,
+      .middle-buttons button {
+        width: min(246px, 82vw);
+      }
+
+      .choice {
+        height: 220px;
+        font-size: clamp(30px, 9vw, 39px);
+      }
+
+      .middle-buttons {
+        height: auto;
+        grid-template-rows: none;
+        gap: 10px;
+      }
+
+      .middle-buttons button {
+        min-height: 110px;
+        font-size: clamp(28px, 8vw, 37px);
+      }
+
+      #leftChoice {
+        order: 1;
+      }
+
+      .middle-buttons {
+        order: 2;
+      }
+
+      #rightChoice {
+        order: 3;
+      }
+    }
+  </style>
+
+</head>
+
+<body>
+  <main class="page">
+    <h1>MCSR GRID SORTER</h1>
+
+    <p class="instructions">
+      pick who you like better in each battle to get an accurate list<br>
+      of your favorite players in mcsr<br>
+      note: hitting 'no opinion' or 'i like both' frequently will negatively affect your results
+    </p>
+
+    <section id="sorterCard" class="sorter-card">
+      <div id="status" class="status">battle #1<br>0% sorted.</div>
+      <progress id="progressBar" value="0" max="100">0%</progress>
+
+      <div class="battle-grid">
+        <button id="leftChoice" class="choice" type="button"></button>
+
+        <div class="middle-buttons">
+          <button id="likeBoth" type="button">i like both</button>
+          <button id="noOpinion" type="button">no opinion<br>/i dislike both<br>/i don't know<br>these people<br>/i'm bald</button>
+        </div>
+
+        <button id="rightChoice" class="choice" type="button"></button>
+      </div>
+    </section>
+
+    <section id="resultsCard" class="results-card">
+      <h2>Your ranking</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Option</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+
+      <div class="result-actions">
+        <button id="copyResults" class="secondary-button" type="button">Copy results</button>
+        <button id="restartSorter" class="secondary-button" type="button">Start over</button>
+      </div>
+    </section>
+
+    <p class="credit">Used with permission. <a href="https://biasorter.tumblr.com/" target="_blank" rel="noopener noreferrer">Created by Biasorter.</a></p>
+  </main>
+
+  <script>
+    const names = [
+      "7rowl",
+      "21mustard",
+      "ancoboyy",
+      "andronicus",
+      "anjouu",
+      "aquacorde",
+      "automattplus",
+      "badgamer",
+      "bbiddd",
+      "beefsalad",
+      "bing_pigs",
+      "blazemind",
+      "contravz",
+      "couriway",
+      "dandannyboy",
+      "darvy_x1",
+      "desktopfolder",
+      "dolqhin",
+      "doogile",
+      "edcr",
+      "erikfzf",
+      "feinberg",
+      "fruitberries",
+      "fulham",
+      "hackingnoises",
+      "hdmicables",
+      "infume",
+      "justaltoid",
+      "k4yfour",
+      "kenankardes",
+      "kxpow",
+      "kyleeff",
+      "loodlow",
+      "lowk3y",
+      "lyxier",
+      "meebie",
+      "mollyyxy",
+      "mrbudgiee",
+      "nahhann",
+      "nerdi_",
+      "nhb_",
+      "nyachloe",
+      "ogarfield",
+      "oliversr",
+      "oxidiot",
+      "pacmanmvc",
+      "paukll",
+      "pavkin",
+      "pinne",
+      "priffie",
+      "redlime",
+      "reignex",
+      "rekrap2",
+      "retropog",
+      "sanjinhu",
+      "silverrruns",
+      "steez",
+      "tapl",
+      "tudorule",
+      "ulsah1n",
+      "v_strid",
+      "wagapizu",
+      "watermelon17"
+    ];
+
+    const sorterCard = document.getElementById("sorterCard");
+    const resultsCard = document.getElementById("resultsCard");
+    const status = document.getElementById("status");
+    const progressBar = document.getElementById("progressBar");
+    const leftChoice = document.getElementById("leftChoice");
+    const rightChoice = document.getElementById("rightChoice");
+    const likeBoth = document.getElementById("likeBoth");
+    const noOpinion = document.getElementById("noOpinion");
+    const resultsBody = document.getElementById("resultsBody");
+    const copyResults = document.getElementById("copyResults");
+    const restartSorter = document.getElementById("restartSorter");
+
+    let runs;
+    let nextRuns;
+    let pairIndex;
+    let leftRun;
+    let rightRun;
+    let mergedRun;
+    let leftIndex;
+    let rightIndex;
+    let battleNumber;
+    let processedWork;
+    let totalWork;
+    let finalRanking;
+
+    function countNamesInRun(run) {
+      return run.reduce((total, group) => total + group.length, 0);
+    }
+
+    function groupLabel(group) {
+      return group.join(" = ");
+    }
+
+    function updateStatus() {
+      const percentage = Math.min(100, Math.floor((processedWork / totalWork) * 100));
+      status.textContent = `Battle #${battleNumber} · ${percentage}% sorted`;
+      progressBar.value = percentage;
+      progressBar.textContent = `${percentage}%`;
+    }
+
+    function showComparison() {
+      leftChoice.textContent = groupLabel(leftRun[leftIndex]);
+      rightChoice.textContent = groupLabel(rightRun[rightIndex]);
+      updateStatus();
+    }
+
+    function beginNextMerge() {
+      if (runs.length === 1) {
+        showResults(runs[0]);
+        return;
+      }
+
+      if (pairIndex >= runs.length) {
+        runs = nextRuns;
+        nextRuns = [];
+        pairIndex = 0;
+        beginNextMerge();
+        return;
+      }
+
+      if (pairIndex === runs.length - 1) {
+        const unpairedRun = runs[pairIndex];
+        nextRuns.push(unpairedRun);
+        processedWork += countNamesInRun(unpairedRun);
+        pairIndex += 1;
+        beginNextMerge();
+        return;
+      }
+
+      leftRun = runs[pairIndex];
+      rightRun = runs[pairIndex + 1];
+      mergedRun = [];
+      leftIndex = 0;
+      rightIndex = 0;
+      showComparison();
+    }
+
+    function finishCurrentMergeIfNeeded() {
+      if (leftIndex >= leftRun.length) {
+        while (rightIndex < rightRun.length) {
+          const group = rightRun[rightIndex];
+          mergedRun.push(group);
+          processedWork += group.length;
+          rightIndex += 1;
+        }
+      } else if (rightIndex >= rightRun.length) {
+        while (leftIndex < leftRun.length) {
+          const group = leftRun[leftIndex];
+          mergedRun.push(group);
+          processedWork += group.length;
+          leftIndex += 1;
+        }
+      }
+
+      if (leftIndex >= leftRun.length && rightIndex >= rightRun.length) {
+        nextRuns.push(mergedRun);
+        pairIndex += 2;
+        beginNextMerge();
+        return true;
+      }
+
+      return false;
+    }
+
+    function choose(preference) {
+      const leftGroup = leftRun[leftIndex];
+      const rightGroup = rightRun[rightIndex];
+
+      if (preference === "left") {
+        mergedRun.push(leftGroup);
+        processedWork += leftGroup.length;
+        leftIndex += 1;
+      } else if (preference === "right") {
+        mergedRun.push(rightGroup);
+        processedWork += rightGroup.length;
+        rightIndex += 1;
+      } else {
+        const tiedGroup = [...leftGroup, ...rightGroup];
+        mergedRun.push(tiedGroup);
+        processedWork += tiedGroup.length;
+        leftIndex += 1;
+        rightIndex += 1;
+      }
+
+      battleNumber += 1;
+
+      if (!finishCurrentMergeIfNeeded()) {
+        showComparison();
+      }
+    }
+
+    function showResults(rankingGroups) {
+      finalRanking = rankingGroups;
+      resultsBody.replaceChildren();
+
+      let rank = 1;
+
+      for (const group of rankingGroups) {
+        for (const name of group) {
+          const row = document.createElement("tr");
+          const rankCell = document.createElement("td");
+          const nameCell = document.createElement("td");
+
+          rankCell.textContent = rank;
+          nameCell.textContent = name;
+          row.append(rankCell, nameCell);
+          resultsBody.appendChild(row);
+        }
+
+        rank += group.length;
+      }
+
+      status.textContent = `Finished · 100% sorted`;
+      progressBar.value = 100;
+      sorterCard.style.display = "none";
+      resultsCard.style.display = "block";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function buildCopyText() {
+      const lines = [];
+      let rank = 1;
+
+      for (const group of finalRanking) {
+        for (const name of group) {
+          lines.push(`${rank}. ${name}`);
+        }
+        rank += group.length;
+      }
+
+      return lines.join("\n");
+    }
+
+    async function copyRanking() {
+      const text = buildCopyText();
+
+      try {
+        await navigator.clipboard.writeText(text);
+        copyResults.textContent = "Copied!";
+      } catch (error) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        textArea.remove();
+        copyResults.textContent = "Copied!";
+      }
+
+      setTimeout(() => {
+        copyResults.textContent = "Copy results";
+      }, 1500);
+    }
+
+    function startSorter() {
+      runs = names.map((name) => [[name]]);
+      nextRuns = [];
+      pairIndex = 0;
+      battleNumber = 1;
+      processedWork = 0;
+      totalWork = names.length * Math.ceil(Math.log2(names.length));
+      finalRanking = [];
+
+      resultsCard.style.display = "none";
+      sorterCard.style.display = "block";
+      progressBar.value = 0;
+      resultsBody.replaceChildren();
+
+      beginNextMerge();
+    }
+
+    leftChoice.addEventListener("click", () => choose("left"));
+    rightChoice.addEventListener("click", () => choose("right"));
+    likeBoth.addEventListener("click", () => choose("tie"));
+    noOpinion.addEventListener("click", () => choose("tie"));
+    copyResults.addEventListener("click", copyRanking);
+    restartSorter.addEventListener("click", startSorter);
+
+    startSorter();
+  </script>
+</body>
+</html>
