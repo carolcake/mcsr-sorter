@@ -282,7 +282,7 @@
 
         <div class="middle-buttons">
           <button id="likeBoth" type="button">i like both</button>
-          <button id="noOpinion" type="button">no opinion<br>/i dislike both<br>/i don't know<br>these people<br>/i'm bald</button>
+          <button id="noOpinion" type="button">no opinion<br>/i dislike both<br>/i don't know<br>these people</button>
         </div>
 
         <button id="rightChoice" class="choice" type="button"></button>
@@ -408,7 +408,9 @@
     }
 
     function groupLabel(group) {
-      return group.join(" = ");
+      // Tumblr's sorter keeps tied entries linked internally, but only
+      // displays one representative name during later comparisons.
+      return group[0];
     }
 
     function updateStatus() {
